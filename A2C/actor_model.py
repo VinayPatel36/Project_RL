@@ -24,10 +24,10 @@ class Actor:
     def create_model(self):
         state_input = Input(shape=self.observation_dim)
         rnn_in = tf.expand_dims(state_input, [0])
-        lstm = LSTM(128)(rnn_in)
-        state_h1 = Dense(24, activation='relu')(lstm)
+        lstm = LSTM(24,activation='relu')(rnn_in)
+        state_h1 = Dense(48, activation='relu')(lstm)
 
-        state_h2 = Dense(24, activation='relu')(state_h1)
+        state_h2 = Dense(48, activation='relu')(state_h1)
         output = Dense(self.action_dim, activation='softmax')(state_h2)
         model = Model(inputs=state_input, outputs=output)
         adam = Adam(lr=0.001)
