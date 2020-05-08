@@ -28,6 +28,11 @@ class Agent:
 
 
     def _build_actor_network(self):
+        """builds and returns a compiled keras.model for the actor.
+        There are 3 inputs. Only the state is for the pass though the neural net.
+        The other two inputs are exclusivly used for the custom loss function (ppo_loss).
+        """
+
         state = K.layers.Input(shape=self.state_dim,name='state_input')
         advantage = K.layers.Input(shape=(1,),name='advantage_input')
         old_prediction = K.layers.Input(shape=(self.action_n,),name='old_prediction_input')
@@ -47,6 +52,10 @@ class Agent:
 
 
     def _build_critic_network(self):
+        """builds and returns a compiled keras.model for the critic.
+        The critic is a simple scalar prediction on the state value(output) given an state(input)
+        Loss is simply mse
+        """
         state = K.layers.Input(shape=self.state_dim,name='state_input')
         dense = K.layers.Dense(32,activation='relu',name='dense1')(state)
         dense = K.layers.Dense(32,activation='relu',name='dense2')(dense)
@@ -59,6 +68,12 @@ class Agent:
 
 
     def ppo_loss(self, advantage, old_prediction):
+        """The PPO custom loss.
+        To add stability to policy updates.
+        params:
+            :advantage: advantage, needed to process algorithm
+            :old_prediction: prediction from "old network", needed to process algorithm
+        """
         def loss(y_true, y_pred):
             prob = y_true * y_pred
             old_prob = y_true * old_prediction
@@ -73,6 +88,11 @@ class Agent:
 
 
     def make_gae(self):
+        """Generates GAE-Generalized advantage estimation type rewards and pushes them into memory object
+            #delta = r + gamma * V(s') * mask - V(s)  |aka advantage
+            #gae = delta + gamma * lambda * mask * gae |moving average smoothing
+            #return(s,a) = gae + V(s)  |add value of state back to it.
+        """
         gae = 0
         mask = 0
         for i in reversed(range(self.memory.cnt_samples)):
